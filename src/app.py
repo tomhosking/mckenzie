@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 
-import json
+import json, datetime
 
 from tinydb import TinyDB, Query
 
@@ -23,26 +23,28 @@ def get_jobs():
     return json.dumps({'job_list': rows})
 
 
-@app.route('/hooks/create_job/', methods=['POST'])
-def create_job():
+@app.route('/hooks/update_job/', methods=['POST'])
+def update_job():
     db = TinyDB('./db/db.json')
     table = db.table('jobs')
 
     print(request.form)
 
-    # table.update({'partition': 'PGR-Fake', 'hostname': 'damnii69', 'status': 'waiting', 'submit_date': '10 mins ago', 'msg':''}, Query().id == 0)
-    # table.update({'partition': 'PGR-Fake', 'hostname': request.args['hostname'], 'status': 'waiting', 'submit_date': '10 mins ago', 'msg': request.args['msg']}, Query().id == 0)
-    return 'Registered job! Missing all the details though'
+    if request.form['status'] == "submitted":
+        table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    else:
+        time = {}
+        node = {}
+        if request.form['status'] == "warmup":
+            time = {'warmup_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        if request.form['status'] == "running":
+            node = {'partition': request.form['partition'], 'hostname': request.form['hostname']}
+            time = {'running_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        if request.form['status'] == "complete" or request.form['status'] == "error" or request.form['status'] == "timeout":
+            time = {'complete_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
-
-@app.route('/hooks/update_job/', methods=['POST'])
-def update_job():
-    return 'Updated job status! Missing all the details though'
-
-
-@app.route('/hooks/finalise_job/', methods=['POST'])
-def finalise_job():
-    return 'Updated job status! Missing all the details though'
+        table.update({**node, 'status': request.form['status'], **time}, Query().id == request.form['jobid'])
+    return 'Updated job status!\n'
 
 
 if __name__ == '__main__':
