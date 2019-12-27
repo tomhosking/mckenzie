@@ -30,23 +30,31 @@ def update_job():
 
     print(request.form)
 
-    if request.form['status'] == "submitted":
+    if request.form.get('status', '') == "submitted":
         table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
     else:
+        # TODO: This is a disgrace
         time = {}
         node = {}
         msg = {}
-        if request.form['status'] == "warmup":
+        jobname = {}
+        status = {}
+        if request.form.get('status', '') == "warmup":
+            node = {'partition': request.form['partition'], 'hostname': request.form['hostname']}
             time = {'warmup_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        if request.form['status'] == "running":
+        if request.form.get('msg', '') == "running":
             node = {'partition': request.form['partition'], 'hostname': request.form['hostname']}
             time = {'running_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        if request.form['status'] == "complete" or request.form['status'] == "error" or request.form['status'] == "timeout":
+        if request.form.get('msg', '') == "complete" or request.form.get('msg', '') or request.form.get('msg', '') == "timeout":
             time = {'complete_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         if request.form.get('msg', '') != '':
             msg = {'msg': request.form['msg']}
+        if request.form.get('jobname', '') != '':
+            jobname = {'jobname': request.form['jobname']}
+        if request.form.get('status', '') != '':   
+            status = {'status': request.form['status']}
 
-        table.update({**node, 'status': request.form['status'], **time, **msg}, Query().id == request.form['jobid'])
+        table.update({**node, **status, **time, **msg, **jobname}, Query().id == request.form['jobid'])
     return 'Updated job status!\n'
 
 

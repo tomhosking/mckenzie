@@ -30,7 +30,7 @@ mckenzie_trap_cancel () {
     if [ $timedout = 0 ] && [ $errored = 0 ] ; then
         echo "Signalling"
         canceled=1
-        curl -s --data "jobid=$SLURM_JOB_ID&status=canceled" http://${MCKENZIE_ENDPOINT}/hooks/update_job/
+        curl -s --data "jobid=$SLURM_JOB_ID&status=cancelled" http://${MCKENZIE_ENDPOINT}/hooks/update_job/
     fi
 }
 
@@ -38,4 +38,4 @@ echo "Setting up error handling"
 
 trap 'mckenzie_trap_timeout' USR1
 trap 'mckenzie_trap_err ${LINENO}' ERR
-trap 'mckenzie_trap_cancel' EXIT HUP INT QUIT PIPE TERM SIGTERM SIGINT
+trap 'mckenzie_trap_cancel' HUP INT QUIT PIPE SIGTERM SIGINT
