@@ -35,6 +35,7 @@ def update_job():
     else:
         time = {}
         node = {}
+        msg = {}
         if request.form['status'] == "warmup":
             time = {'warmup_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         if request.form['status'] == "running":
@@ -42,8 +43,10 @@ def update_job():
             time = {'running_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         if request.form['status'] == "complete" or request.form['status'] == "error" or request.form['status'] == "timeout":
             time = {'complete_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        if request.form.get('msg', '') != '':
+            msg = {'msg': request.form['msg']}
 
-        table.update({**node, 'status': request.form['status'], **time}, Query().id == request.form['jobid'])
+        table.update({**node, 'status': request.form['status'], **time, **msg}, Query().id == request.form['jobid'])
     return 'Updated job status!\n'
 
 

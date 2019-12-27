@@ -63,7 +63,7 @@ class App extends React.Component {
                                     <th scope="row" style={{textAlign: 'center'}}>{job.id}</th>
                                     <td>{job.partition}</td>
                                     <td>{job.hostname}</td>
-                                    <td>{job.submit_date}</td>
+                                    <td>{job.submit_time}</td>
                                     <td>{job.status}</td>
                                     <td>{job.msg}</td>
                                 </tr>
