@@ -21,7 +21,7 @@ mckenzie_trap_err () {
     errored=1
     if [ $timedout = 0 ] && [ $canceled = 0 ] ; then
         echo "Signalling"
-        curl -s --data "jobid=$SLURM_JOB_ID&status=error&msg=Line $1 http://${MCKENZIE_ENDPOINT}/hooks/update_job/
+        curl -s --data "jobid=$SLURM_JOB_ID&status=error&msg=Line $1" http://${MCKENZIE_ENDPOINT}/hooks/update_job/
     fi
 }
 mckenzie_trap_cancel () {
