@@ -1,4 +1,5 @@
-# McKenzie ![Image of Slurms](https://github.com/tomhosking/mckenzie/raw/master/src/static/slurms.png | width=64)
+# McKenzie 
+![Image of Slurms](https://github.com/tomhosking/mckenzie/raw/master/src/static/slurms.png | width=64)
 
 A lightweight job tracker for the Slurm scheduler
 
