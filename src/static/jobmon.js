@@ -3,6 +3,21 @@
 const e = React.createElement;
 
 
+class ProgressBar extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return <div>
+                <span className="badge" style={{'float': 'left', 'marginTop':'7px', 'width': '10%', 'textAlign': 'right'}}>{this.props.title}</span>
+                <div className="progress m-1" style={{height: '30px', 'fontSize': '20px', 'fontWeight': 'bold'}}>
+                        <div className={'p-1 progress-bar progress-bar-striped  progress-bar-animated ' + ( this.props.progress < 99 ? 'bg-warning' : 'bg-success')} role="progressbar" style={{width: this.props.progress+'%'}}>{this.props.progress}%</div>
+                    </div>
+            </div>
+    }
+}
+
 
 class App extends React.Component {
   constructor(props) {
@@ -31,6 +46,12 @@ class App extends React.Component {
       setTimeout(this.updateStatus, 10000)
   }
 
+  deleteJob(jobid)
+  {
+    fetch('/api/delete_job/'+jobid)
+    .then((response) => this.updateStatus())
+  }
+
   componentDidMount()
   {
       this.updateStatus()
@@ -53,7 +74,10 @@ class App extends React.Component {
                         <th scope="col">Name</th>
                         <th scope="col">Submitted</th>
                         <th scope="col">Status</th>
+                        <th scope="col">Score</th>
+                        <th scope="col">Progress</th>
                         <th scope="col">Output</th>
+                        <th scope="col">&nbsp;</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -104,7 +128,10 @@ class App extends React.Component {
                                     <td>{job.jobname}</td>
                                     <td>{job.submit_time}</td>
                                     <td>{statusIcon}</td>
+                                    <td>{job.metric}</td>
+                                    <td>{job.progress != null ? <ProgressBar progress={job.progress} /> : ''}</td>
                                     <td>{job.msg}</td>
+                                    <td><button onClick={() => (this.deleteJob(job.id))} className="btn"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button></td>
                                 </tr>
                              )} )
                         }

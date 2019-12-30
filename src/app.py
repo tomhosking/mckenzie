@@ -3,6 +3,7 @@ from flask import Flask, render_template, request
 import json, datetime
 
 from tinydb import TinyDB, Query
+import tinydb
 
 
 app = Flask(__name__)
@@ -23,6 +24,16 @@ def get_jobs():
     return json.dumps({'job_list': rows})
 
 
+@app.route('/api/delete_job/<job_id>', methods=['GET'])
+def delete_job(job_id):
+
+    db = TinyDB('./db/db.json')
+    table = db.table('jobs')
+
+    table.remove(Query().id == job_id)
+
+    return "Removed"
+
 @app.route('/hooks/update_job/', methods=['POST'])
 def update_job():
     db = TinyDB('./db/db.json')
@@ -39,6 +50,7 @@ def update_job():
         msg = {}
         jobname = {}
         status = {}
+        inplay = {}
         if request.form.get('status', '') == "warmup":
             node = {'partition': request.form['partition'], 'hostname': request.form['hostname']}
             time = {'warmup_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
@@ -53,8 +65,10 @@ def update_job():
             jobname = {'jobname': request.form['jobname']}
         if request.form.get('status', '') != '':   
             status = {'status': request.form['status']}
+        if request.form.get('progress', '') != '' and request.form.get('metric', '') != '':
+            inplay = {'metric': request.form['metric'], 'progress': request.form['progress']}
 
-        table.update({**node, **status, **time, **msg, **jobname}, Query().id == request.form['jobid'])
+        table.update({**node, **status, **time, **msg, **jobname, **inplay}, Query().id == request.form['jobid'])
     return 'Updated job status!\n'
 
 
