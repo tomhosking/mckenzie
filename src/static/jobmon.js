@@ -10,9 +10,9 @@ class ProgressBar extends React.Component {
 
     render() {
         return <div>
-                <span className="badge" style={{'float': 'left', 'marginTop':'7px', 'width': '10%', 'textAlign': 'right'}}>{this.props.title}</span>
-                <div className="progress m-1" style={{height: '30px', 'fontSize': '20px', 'fontWeight': 'bold'}}>
-                        <div className={'p-1 progress-bar progress-bar-striped  progress-bar-animated ' + ( this.props.progress < 99 ? 'bg-warning' : 'bg-success')} role="progressbar" style={{width: this.props.progress+'%'}}>{this.props.progress}%</div>
+                <span className="badge" style={{'float': 'left', 'marginTop':'2px', 'width': '10%', 'textAlign': 'right'}}>{this.props.title}</span>
+                <div className="progress m-0" style={{height: '20px', 'fontSize': '10px', 'fontWeight': 'bold'}}>
+                        <div className={'p-1 progress-bar progress-bar-striped ' + ( this.props.progress < 100 ? 'bg-warning' : 'bg-success') + (this.props.progress < 100 ? ' progress-bar-animated' : '')} role="progressbar" style={{width: this.props.progress+'%'}}>{this.props.progress}%</div>
                     </div>
             </div>
     }
@@ -29,7 +29,7 @@ class App extends React.Component {
   }
 
 
-  updateStatus() {
+  updateStatus(retrigger = true) {
       fetch('/api/get_jobs')
       .then((response) => response.json())
       .then((data) => this.setState(
@@ -42,14 +42,16 @@ class App extends React.Component {
 
       console.log(this.state)
       
-
-      setTimeout(this.updateStatus, 10000)
+      if(retrigger)
+      {
+        setTimeout(this.updateStatus, 10000)
+      }
   }
 
   deleteJob(jobid)
   {
     fetch('/api/delete_job/'+jobid)
-    .then((response) => this.updateStatus())
+    .then((response) => this.updateStatus(false))
   }
 
   componentDidMount()
@@ -131,7 +133,7 @@ class App extends React.Component {
                                     <td>{job.metric}</td>
                                     <td>{job.progress != null ? <ProgressBar progress={job.progress} /> : ''}</td>
                                     <td>{job.msg}</td>
-                                    <td><button onClick={() => (this.deleteJob(job.id))} className="btn"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button></td>
+                                    <td><button onClick={() => (this.deleteJob(job.id))} className="btn p-0 m-0"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button></td>
                                 </tr>
                              )} )
                         }
