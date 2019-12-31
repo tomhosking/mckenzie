@@ -63,7 +63,7 @@ class App extends React.Component {
   render() {
     return <div className="container p-2">
                 
-                <table class="table">
+                <table class="table table-striped table-sm table-hover small">
                     <thead>
                         <tr>
                         <th scope="col" style={{textAlign: 'center'}}>
