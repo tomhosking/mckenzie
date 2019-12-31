@@ -8,6 +8,9 @@ import tinydb
 
 app = Flask(__name__)
 
+def check_auth():
+    return True
+
 @app.route('/')
 def home():
     
@@ -18,8 +21,8 @@ def home():
 @app.route('/api/get_jobs')
 def get_jobs():
     
-    db = TinyDB('./db/db.json')
-    table = db.table('jobs')
+    # db = TinyDB('./db/db.json')
+    table = app.db.table('jobs')
     rows = table.all()
     return json.dumps({'job_list': rows})
 
@@ -27,8 +30,8 @@ def get_jobs():
 @app.route('/api/delete_job/<job_id>', methods=['GET'])
 def delete_job(job_id):
 
-    db = TinyDB('./db/db.json')
-    table = db.table('jobs')
+    # db = TinyDB('./db/db.json')
+    table = app.db.table('jobs')
 
     table.remove(Query().id == job_id)
 
@@ -36,10 +39,12 @@ def delete_job(job_id):
 
 @app.route('/hooks/update_job/', methods=['POST'])
 def update_job():
-    db = TinyDB('./db/db.json')
-    table = db.table('jobs')
+    table = app.db.table('jobs')
 
-    print(request.form)
+    # print(request.form)
+
+    if not check_auth():
+        return "Permission denied! Check your access token"
 
     if request.form.get('status', '') == "submitted":
         table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
@@ -73,4 +78,9 @@ def update_job():
 
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0', port=5002)
+
+    app.db = TinyDB('./db/db.json')
+    with app.app_context():
+        # app.run(host="0.0.0.0", port=5004, processes=1)
+        app.run(debug=True,host='0.0.0.0', port=5002)
+    db.close()
