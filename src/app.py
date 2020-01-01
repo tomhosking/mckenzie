@@ -3,6 +3,8 @@ from flask import Flask, render_template, request
 import json, datetime
 
 from tinydb import TinyDB, Query
+from tinydb.storages import JSONStorage
+from tinydb.middlewares import CachingMiddleware
 import tinydb
 
 
@@ -79,8 +81,8 @@ def update_job():
 
 if __name__ == '__main__':
 
-    app.db = TinyDB('./db/db.json')
+    app.db = TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage))
     with app.app_context():
         # app.run(host="0.0.0.0", port=5004, processes=1)
         app.run(debug=True,host='0.0.0.0', port=5002)
-    db.close()
+    app.db.close()
