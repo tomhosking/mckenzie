@@ -24,8 +24,8 @@ def home():
 def get_jobs():
     
     # db = TinyDB('./db/db.json')
-    table = app.db.table('jobs')
-    rows = table.all()
+    
+    rows = app.table.all()
     return json.dumps({'job_list': rows})
 
 
@@ -33,15 +33,15 @@ def get_jobs():
 def delete_job(job_id):
 
     # db = TinyDB('./db/db.json')
-    table = app.db.table('jobs')
+    
 
-    table.remove(Query().id == job_id)
+    app.table.remove(Query().id == job_id)
 
     return "Removed"
 
 @app.route('/hooks/update_job/', methods=['POST'])
 def update_job():
-    table = app.db.table('jobs')
+    
 
     # print(request.form)
 
@@ -49,7 +49,7 @@ def update_job():
         return "Permission denied! Check your access token"
 
     if request.form.get('status', '') == "submitted":
-        table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+        app.table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
     else:
         # TODO: This is a disgrace
         time = {}
@@ -75,14 +75,15 @@ def update_job():
         if request.form.get('progress', '') != '' and request.form.get('metric', '') != '':
             inplay = {'metric': request.form['metric'], 'progress': request.form['progress']}
 
-        table.update({**node, **status, **time, **msg, **jobname, **inplay}, Query().id == request.form['jobid'])
+        app.table.update({**node, **status, **time, **msg, **jobname, **inplay}, Query().id == request.form['jobid'])
     return 'Updated job status!\n'
 
 
 if __name__ == '__main__':
 
-    app.db = TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage))
-    with app.app_context():
-        # app.run(host="0.0.0.0", port=5004, processes=1)
-        app.run(debug=True,host='0.0.0.0', port=5002)
-    app.db.close()
+    with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
+        app.table = db.table('jobs')
+        with app.app_context():
+            # app.run(host="0.0.0.0", port=5004, processes=1)
+            app.run(debug=True,host='0.0.0.0', port=5002)
+    
