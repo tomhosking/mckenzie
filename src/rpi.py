@@ -28,7 +28,7 @@ try:
         r = requests.get(MCKENZIE_PROXY + '/api/get')
 
         
-
+        unicorn.clear()
         if r.status_code == 200:
             status = r.json()
 
