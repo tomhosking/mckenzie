@@ -29,7 +29,7 @@ try:
         if r.status_code == 200:
             status = r.json()
 
-            print(status)
+            print(status, len(status['running_progress']) )
 
             if len(status['running_progress']) > 0:
                 for y, prog in enumerate(status['running_progress'][:3]):
