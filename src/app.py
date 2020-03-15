@@ -41,7 +41,7 @@ def delete_job(job_id):
     
 
     app.table.remove(Query().id == job_id)
-
+    update_proxy()
     return "Removed"
 
 @app.route('/hooks/update_job/', methods=['POST'])
@@ -81,6 +81,7 @@ def update_job():
             inplay = {'metric': request.form['metric'], 'progress': request.form['progress']}
 
         app.table.update({**node, **status, **time, **msg, **jobname, **inplay}, Query().id == request.form['jobid'])
+    update_proxy()
     return 'Updated job status!\n'
 
 
@@ -92,6 +93,9 @@ if __name__ == '__main__':
 
         def update_proxy():
             """ Send summary of status to proxy responder """
+            
+            if 'MCKENZIE_PROXY' not in os.environ:
+                return
 
             try:
                 headers = {'Content-Type' : 'application/json'}
@@ -115,16 +119,16 @@ if __name__ == '__main__':
                 print('Error updating proxy: ', e)
             
 
-        if 'MCKENZIE_PROXY' in os.environ:
-            sched = BackgroundScheduler(daemon=True)
-            sched.add_job(update_proxy,'interval',minutes=5)
-            sched.start()
-            update_proxy()
+        
+        update_proxy()
+            # sched = BackgroundScheduler(daemon=True)
+            # sched.add_job(update_proxy,'interval',minutes=5)
+            # sched.start()
 
         with app.app_context():
             # app.run(host="0.0.0.0", port=5004, processes=1)
             app.run(debug=True,host='0.0.0.0', port=5002)
 
-        if 'MCKENZIE_PROXY' in os.environ:
-            sched.shutdown()
+        # if 'MCKENZIE_PROXY' in os.environ:
+        #     sched.shutdown()
     
