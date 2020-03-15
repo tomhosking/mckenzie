@@ -48,7 +48,7 @@ try:
                 unicorn.set_pixel(0,0, 0,255,0)
 
             for y in range(counter, min(counter+int(status['count_waiting']), 4)):
-                print(counter, int(status['count_waiting'], min(counter+int(status['count_waiting']), 4), y)
+                print(counter, int(status['count_waiting']), min(counter+int(status['count_waiting']), 4), y)
                 unicorn.set_pixel(0,y, 0,0,200)
 
             
