@@ -1,13 +1,16 @@
+from flask import Flask, render_template, request
+
+import json, datetime
+
+from tinydb import TinyDB, Query
+from tinydb.storages import JSONStorage
+from tinydb.middlewares import CachingMiddleware
+import tinydb
+
+app = Flask(__name__)
 
 
-def application(environ, start_response):
-    output = 'Welcome to mckenze proxy!'
-
-    response_headers = [
-        ('Content-Length', str(len(output))),
-        ('Content-Type', 'text/plain'),
-    ]
-
-    start_response('200 OK', response_headers)
-
-    return [bytes(output, 'utf-8')]
+@app.route('/')
+def home():
+    
+    return "Mckenzie Proxy is running"
