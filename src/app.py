@@ -12,7 +12,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 
 
-app = Flask(__name__)
+# app = Flask(__name__)
+
+app = Flask(__name__, static_folder="ui/build/static", template_folder="ui/build")
+
 
 
 def check_auth():
@@ -21,7 +24,8 @@ def check_auth():
 @app.route('/')
 def home():
     
-    return render_template('index.htm')
+    # return render_template('index.htm')
+    return render_template('index.html')
 
 
 
