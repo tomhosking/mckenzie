@@ -106,7 +106,7 @@ if __name__ == '__main__':
                     'count_total': len(jobs),
                     'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
                     'count_errors': len([1 for x in jobs if x['status'] == 'error']),
-                    'count_running': len([1 for x in jobs if x['status'] == 'running']),
+                    'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
                     'running_progress': [x['progress'] for x in jobs if x['status'] == 'running']
                 }
 
