@@ -42,6 +42,8 @@ try:
                     # print(y, width)
                     for x in range(prog_width):
                         unicorn.set_pixel(x+1,y,*prog_col)
+            else:
+                unicorn.set_pixel(0,0, 0,255,0)
 
             num_errs = status['count_errors']
 
