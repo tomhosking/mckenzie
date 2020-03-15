@@ -40,8 +40,8 @@ def update():
     except Exception as e:
         return str(e)
 
-    finally:
-        return "OK"
+    # finally:
+    #     return "OK"
 
 
 
