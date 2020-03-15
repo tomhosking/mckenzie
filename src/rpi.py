@@ -77,5 +77,8 @@ try:
         time.sleep(10)
 
 except Exception as e:
+
+    unicorn.clear()
+    unicorn.show()
     print(e)
     print('Exiting...')
