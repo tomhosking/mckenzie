@@ -34,6 +34,9 @@ def update():
 
             table.update(new_status, Query().type == 'status')
 
+            stat_objs = table.search(Query().type == 'status')
+            print(stat_objs)
+
     except Exception as e:
         return str(e)
 
