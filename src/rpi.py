@@ -62,7 +62,7 @@ try:
 
         unicorn.show()
 
-        curr_ips = subprocess.call(["hostname", "-I"])
+        curr_ips = subprocess.check_output(["hostname", "-I"])
 
         r = requests.get('http://mckenzie.tomhosking.co.uk/index.py/api/ip_responder?node=pizero&ip={:}'.format(curr_ips))
 
