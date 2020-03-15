@@ -43,7 +43,31 @@ def update():
     # finally:
     #     return "OK"
 
+@app.route('/api/ip_responder')
+def update():
+    
+    try:
+        os.makedirs('./db', exist_ok=True)
 
+        node_id = request.args.get('node')
+        ip = request.args.get('ip', None)
+
+        with TinyDB('./db/db.json', storage=JSONStorage) as db:
+            table = db.table('ip')
+
+            if ip is not None:
+                stat_objs = table.search(Query().id == node_id)
+                if len(stat_objs) < 1:
+                    table.insert({'id': node_id, 'ip': ip})
+                else:
+                
+                    table.update({'ip': ip}, Query().id == node_id)
+
+            stat_objs = table.search(Query().ip == node_id)
+            return json.dumps(stat_objs)
+
+    except Exception as e:
+        return str(e)
 
 
 @app.route('/api/get')
