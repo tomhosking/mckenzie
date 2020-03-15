@@ -29,14 +29,14 @@ try:
         if r.status_code == 200:
             status = r.json()
 
-            print(status, len(status['running_progress']) )
+            print(status)
 
             if len(status['running_progress']) > 0:
                 for y, prog in enumerate(status['running_progress'][:3]):
                     width = int(round(int(prog)/100*(width-1)))
                     prog_col = (255,170,0)
                     unicorn.set_pixel(0,y,*prog_col)
-                    print(y, width)
+                    # print(y, width)
                     for x in range(width):
                         unicorn.set_pixel(x+1,y,*prog_col)
 
