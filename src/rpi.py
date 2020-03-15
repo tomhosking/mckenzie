@@ -21,6 +21,8 @@ width,height=unicorn.get_shape()
 try:
     MCKENZIE_PROXY = os.environ['MCKENZIE_PROXY']
 
+    print('Brightness: ', unicorn.get_brightness())
+
     while True:
         r = requests.get(MCKENZIE_PROXY + '/api/get')
 
@@ -47,10 +49,10 @@ try:
             for x in range(err_width):
                 unicorn.set_pixel(x,4,*temp_col)
 
-            unicorn.set_pixel(width-1, height-1, 0,0,60)
+            unicorn.set_pixel(width-1, height-1, 0,0,100)
 
         else:
-            unicorn.set_pixel(width-1, height-1, 60,0,0)
+            unicorn.set_pixel(width-1, height-1, 100,0,0)
 
         unicorn.show()
 
