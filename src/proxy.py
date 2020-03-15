@@ -15,7 +15,7 @@ def home():
     
     return "Mckenzie Proxy is running"
 
-@app.route('/api/update')
+@app.route('/api/update', methods=['POST'])
 def update():
     
     try:
@@ -28,7 +28,8 @@ def update():
                 table.insert({'type': 'status'})
 
             new_status = {
-                'updated': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                'updated': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                **json.loads(request.form.get('payload', '{}'))
             }
 
             table.update(new_status, Query().type == 'status')
