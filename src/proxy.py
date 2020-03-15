@@ -20,7 +20,7 @@ def update():
     
     try:
         os.makedirs('./db', exist_ok=True)
-        with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
+        with TinyDB('./db/db.json', storage=JSONStorage) as db:
             table = db.table('status')
 
             stat_objs = table.search(Query().type == 'status')
@@ -47,7 +47,7 @@ def update():
 def get():
     try:
         os.makedirs('./db', exist_ok=True)
-        with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
+        with TinyDB('./db/db.json', storage=JSONStorage) as db:
             table = db.table('status')
 
             stat_objs = table.search(Query().type == 'status')
