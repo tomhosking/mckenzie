@@ -29,7 +29,7 @@ def update():
 
             new_status = {
                 'updated': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                **json.loads(request.form.get('payload', '{}'))
+                **request.get_json()
             }
 
             table.update(new_status, Query().type == 'status')
