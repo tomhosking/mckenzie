@@ -60,7 +60,7 @@ try:
             err_col = (255,0,0)
             err_width = min(width-2, num_errs)
             for x in range(err_width):
-                unicorn.set_pixel(x,2,*err_col)
+                unicorn.set_pixel(x,3,*err_col)
 
             unicorn.set_pixel(width-1, height-1, 100,0,100)
 
