@@ -34,8 +34,10 @@ def update():
 
             table.update(new_status, Query().type == 'status')
 
+            table
+
             stat_objs = table.search(Query().type == 'status')
-            print(stat_objs)
+            return json.dumps(stat_objs)
 
     except Exception as e:
         return str(e)
