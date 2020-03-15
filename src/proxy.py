@@ -44,7 +44,7 @@ def update():
     #     return "OK"
 
 @app.route('/api/ip_responder')
-def update():
+def ip_responder():
     
     try:
         os.makedirs('./db', exist_ok=True)
