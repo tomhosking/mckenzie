@@ -34,6 +34,7 @@ try:
 
             print(status)
 
+            counter = 0
             if len(status['running_progress']) > 0:
                 for y, prog in enumerate(status['running_progress'][:3]):
                     prog_width = int(round(float(prog)/100*(width-1)))
@@ -42,8 +43,12 @@ try:
                     # print(y, width)
                     for x in range(prog_width):
                         unicorn.set_pixel(x+1,y,*prog_col)
+                    counter +=1
             else:
                 unicorn.set_pixel(0,0, 0,255,0)
+
+            for y in range(counter, min(int(status['count_waiting']), 4)):
+                unicorn.set_pixel(0,y, 255,0,0)
 
             num_errs = status['count_errors']
 
