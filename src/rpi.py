@@ -21,7 +21,7 @@ width,height=unicorn.get_shape()
 try:
     MCKENZIE_PROXY = os.environ['MCKENZIE_PROXY']
 
-    unicorn.brightness(0.8)
+    unicorn.brightness(0.6)
     print('Brightness: ', unicorn.get_brightness())
 
     while True:
