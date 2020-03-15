@@ -34,8 +34,6 @@ def update():
 
             table.update(new_status, Query().type == 'status')
 
-            table
-
             stat_objs = table.search(Query().type == 'status')
             return json.dumps(stat_objs)
 
