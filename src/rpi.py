@@ -19,41 +19,31 @@ width,height=unicorn.get_shape()
 
 
 try:
+    MCKENZIE_PROXY = os.environ['MCKENZIE_PROXY']
+
     while True:
-        r = requests.get('http://webster.inf.ed.ac.uk:5001/api/status')
+        r = requests.get(MCKENZIE_PROXY + 'api/get')
 
         
 
         if r.status_code == 200:
             status = r.json()
 
-            
+            print(status)
 
-            mem_usage = float(status['utilization.memory [%]'])/100
-            usage = float(status['utilization.gpu [%]'])/100
-            temp = (float(status['temperature.gpu'])-40)/40
+            if len(status['running_progress'] > 1):
+                for y, prog in enumerate(status['running_progress'][:3]):
+                    width = int(round(prog/100*(width-1)))
+                    prog_col = (255,170,0)
+                    for x in range(width):
+                        unicorn.set_pixel(x,y,*prog_col)
 
-            print(mem_usage, usage, temp)
-            
-            mem_col = (0,255,0) if mem_usage < 0.5 else (255,170,0) if mem_usage < 0.85 else (255,0,0)
-            unicorn.set_pixel(0,0,*mem_col)
-            mem_usage_width = int(round(mem_usage*(width-1)))
-            for x in range(mem_usage_width):
-                unicorn.set_pixel(x,0,*mem_col)
+            num_errs = status['count_errors']
 
-
-            use_col = (0,255,0) if mem_usage < 0.5 else (255,170,0) if mem_usage < 0.85 else (255,0,0)
-            unicorn.set_pixel(0,1,*use_col)
-            usage_width = int(round(usage*(width-1)))
-            for x in range(usage_width):
-                unicorn.set_pixel(x,1,*use_col)
-
-            
-            temp_col = (0,255,0) if temp < 0.5 else (255,170,0) if temp < 0.85 else (255,0,0)
-            unicorn.set_pixel(0,2,*temp_col)
-            temp_width = int(round(temp*(width-1)))
-            for x in range(temp_width):
-                unicorn.set_pixel(x,2,*temp_col)
+            temp_col = (255,0,0)
+            err_width = min(width-2, num_errs)
+            for x in range(err_width):
+                unicorn.set_pixel(x,4,*temp_col)
 
             unicorn.set_pixel(width-1, height-1, 0,0,100)
 
@@ -64,7 +54,7 @@ try:
 
         curr_ips = subprocess.check_output(["hostname", "-I"])
 
-        r = requests.get('http://mckenzie.tomhosking.co.uk/index.py/api/ip_responder?node=pizero&ip={:}'.format(curr_ips))
+        r = requests.get(MCKENZIE_PROXY + '/api/ip_responder?node=pizero&ip={:}'.format(curr_ips))
 
 
         time.sleep(10)
