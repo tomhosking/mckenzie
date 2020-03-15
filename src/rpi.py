@@ -22,7 +22,7 @@ try:
     MCKENZIE_PROXY = os.environ['MCKENZIE_PROXY']
 
     while True:
-        r = requests.get(MCKENZIE_PROXY + 'api/get')
+        r = requests.get(MCKENZIE_PROXY + '/api/get')
 
         
 
