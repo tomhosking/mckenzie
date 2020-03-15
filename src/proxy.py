@@ -63,7 +63,7 @@ def ip_responder():
                 
                     table.update({'ip': ip}, Query().id == node_id)
 
-            stat_objs = table.search(Query().ip == node_id)
+            stat_objs = table.search(Query().id == node_id)
             return json.dumps(stat_objs)
 
     except Exception as e:
