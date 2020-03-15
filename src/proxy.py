@@ -19,6 +19,7 @@ def home():
 def update():
     
     try:
+        os.makedirs('./db', exist_ok=True)
         with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
             table = db.table('status')
 
@@ -44,6 +45,7 @@ def update():
 @app.route('/api/get')
 def get():
     try:
+        os.makedirs('./db', exist_ok=True)
         with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
             table = db.table('status')
 
