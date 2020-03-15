@@ -33,11 +33,11 @@ try:
 
             if len(status['running_progress']) > 0:
                 for y, prog in enumerate(status['running_progress'][:3]):
-                    width = int(round(float(prog)/100*(width-1)))
+                    prog_width = int(round(float(prog)/100*(width-1)))
                     prog_col = (255,170,0)
                     unicorn.set_pixel(0,y,*prog_col)
                     # print(y, width)
-                    for x in range(width):
+                    for x in range(prog_width):
                         unicorn.set_pixel(x+1,y,*prog_col)
 
             num_errs = status['count_errors']
