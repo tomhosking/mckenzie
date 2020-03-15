@@ -47,10 +47,10 @@ try:
             for x in range(err_width):
                 unicorn.set_pixel(x,4,*temp_col)
 
-            unicorn.set_pixel(width-1, height-1, 0,0,120)
+            unicorn.set_pixel(width-1, height-1, 0,0,60)
 
         else:
-            unicorn.set_pixel(width-1, height-1, 120,0,0)
+            unicorn.set_pixel(width-1, height-1, 60,0,0)
 
         unicorn.show()
 
