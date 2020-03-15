@@ -117,11 +117,14 @@ if __name__ == '__main__':
 
         if 'MCKENZIE_PROXY' in os.environ:
             sched = BackgroundScheduler(daemon=True)
-            sched.add_job(update_proxy,'interval',minutes=1)
+            sched.add_job(update_proxy,'interval',minutes=5)
             sched.start()
             update_proxy()
 
         with app.app_context():
             # app.run(host="0.0.0.0", port=5004, processes=1)
             app.run(debug=True,host='0.0.0.0', port=5002)
+
+        if 'MCKENZIE_PROXY' in os.environ:
+            sched.shutdown()
     
