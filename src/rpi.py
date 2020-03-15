@@ -48,7 +48,7 @@ try:
                 unicorn.set_pixel(0,0, 0,255,0)
 
             for y in range(counter, min(counter+int(status['count_waiting']), 4)):
-                unicorn.set_pixel(0,y, 255,0,0)
+                unicorn.set_pixel(0,y, 0,0,200)
 
             
             if counter is 0 and int(status['count_waiting']) == 0:
@@ -61,7 +61,7 @@ try:
             for x in range(err_width):
                 unicorn.set_pixel(x,4,*temp_col)
 
-            unicorn.set_pixel(width-1, height-1, 0,0,100)
+            unicorn.set_pixel(width-1, height-1, 100,0,100)
 
         else:
             unicorn.set_pixel(width-1, height-1, 100,0,0)
