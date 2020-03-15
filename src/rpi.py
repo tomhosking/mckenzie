@@ -31,7 +31,7 @@ try:
 
             print(status)
 
-            if len(status['running_progress']) > 1:
+            if len(status['running_progress']) > 0:
                 for y, prog in enumerate(status['running_progress'][:3]):
                     width = int(round(int(prog)/100*(width-1)))
                     prog_col = (255,170,0)
