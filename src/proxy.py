@@ -30,7 +30,7 @@ def update():
                 'updated': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
 
-            table.update(**new_status, Query().type == 'status')
+            table.update(new_status, Query().type == 'status')
 
     except Exception as e:
         return str(e)
