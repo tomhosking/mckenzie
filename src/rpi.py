@@ -67,7 +67,7 @@ try:
 
             else:
                 unicorn.set_pixel(width-1, height-1, 100,0,100)
-        catch:
+        except:
             unicorn.set_pixel(width-1, height-1, 100,0,100)
 
         unicorn.show()
@@ -76,7 +76,7 @@ try:
 
         try:
             r = requests.get(MCKENZIE_PROXY + '/api/ip_responder?node=pizero&ip={:}'.format(curr_ips))
-        catch:
+        except:
             print('Error connecting to IP responder')
 
 
