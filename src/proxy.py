@@ -29,7 +29,7 @@ def ensure_table_exists():
 
         # Create table
         c.execute('''CREATE TABLE IF NOT EXISTS status
-             (id INTEGER PRIMARY KEY, last_updated TEXT, count_waiting INTEGER, count_running INTEGER, count_errors INTEGER, progress_json TEXT)''')
+             (id INTEGER PRIMARY KEY, last_updated TEXT, count_waiting INTEGER, count_running INTEGER, count_errors INTEGER, progress TEXT)''')
 
         c.execute('''CREATE TABLE IF NOT EXISTS ips
              (id text PRIMARY KEY, last_updated TEXT, ip TEXT)''')
