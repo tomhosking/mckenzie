@@ -109,10 +109,10 @@ if __name__ == '__main__':
                 try:
                     headers = {'Content-Type' : 'application/json'}
 
-                    jobs = app.table('jobs').all()
+                    jobs = app.table.all()
 
                     stat_obj = {
-                        'count_total': len(jobs),
+                        # 'count_total': len(jobs),
                         'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
                         'count_errors': len([1 for x in jobs if x['status'] == 'error']),
                         'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
