@@ -108,7 +108,7 @@ def get():
             # stat_objs = table.search(Query().type == 'status')
             stat_objs = db.execute('SELECT * FROM status').fetchall()
             if len(stat_objs) > 0:
-                status = dict(stat_obj[0])
+                status = dict(stat_objs[0])
                 status['progress'] = json.loads(status['progress'])
                 return json.dumps()
             else:
