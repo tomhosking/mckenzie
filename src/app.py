@@ -12,7 +12,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import requests
 
 
-app = Flask(__name__)
+# app = Flask(__name__)
+
+app = Flask(__name__, static_folder="ui/build/static", template_folder="ui/build")
+
 
 
 def check_auth():
@@ -21,7 +24,8 @@ def check_auth():
 @app.route('/')
 def home():
     
-    return render_template('index.htm')
+    # return render_template('index.htm')
+    return render_template('index.html')
 
 
 
@@ -91,44 +95,42 @@ if __name__ == '__main__':
         app.table = db.table('jobs')
 
 
-        def update_proxy():
-            """ Send summary of status to proxy responder """
-            
-            if 'MCKENZIE_PROXY' not in os.environ:
-                return
-
-            try:
-                headers = {'Content-Type' : 'application/json'}
-
-                jobs = db.table('jobs').all()
-
-                stat_obj = {
-                    'count_total': len(jobs),
-                    'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
-                    'count_errors': len([1 for x in jobs if x['status'] == 'error']),
-                    'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
-                    'running_progress': [x['progress'] for x in jobs if x['status'] == 'running']
-                }
-
-                r = requests.post(
-                    os.environ['MCKENZIE_PROXY'] + '/api/update',
-                    data=json.dumps(stat_obj),
-                    headers=headers)
-                
-            except Exception as e:
-                print('Error updating proxy: ', e)
-            
-
         
-        update_proxy()
-            # sched = BackgroundScheduler(daemon=True)
-            # sched.add_job(update_proxy,'interval',minutes=5)
-            # sched.start()
 
         with app.app_context():
             # app.run(host="0.0.0.0", port=5004, processes=1)
-            app.run(debug=True,host='0.0.0.0', port=5002)
 
-        # if 'MCKENZIE_PROXY' in os.environ:
-        #     sched.shutdown()
+            def update_proxy():
+                """ Send summary of status to proxy responder """
+                
+                if 'MCKENZIE_PROXY' not in os.environ:
+                    return
+
+                try:
+                    headers = {'Content-Type' : 'application/json'}
+
+                    jobs = app.table.all()
+
+                    stat_obj = {
+                        # 'count_total': len(jobs),
+                        'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
+                        'count_errors': len([1 for x in jobs if x['status'] == 'error']),
+                        'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
+                        'running_progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
+                    }
+
+                    r = requests.post(
+                        os.environ['MCKENZIE_PROXY'] + '/api/update',
+                        data=json.dumps(stat_obj),
+                        headers=headers)
+                    
+                except Exception as e:
+                    print('Error updating proxy: ', e)
+                
+
+            
+            update_proxy()
+
+
+            app.run(debug=False,host='0.0.0.0', port=5002)
     
