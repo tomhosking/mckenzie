@@ -9,6 +9,31 @@ import tinydb
 
 app = Flask(__name__)
 
+import sqlite3
+
+
+class SQLite():
+    def __init__(self, file='./db/mckenzie_proxy.sqlite'):
+        self.file=file
+    def __enter__(self):
+        self.conn = sqlite3.connect(self.file)
+        self.conn.row_factory = sqlite3.Row
+        return self.conn.cursor()
+    def __exit__(self, type, value, traceback):
+        self.conn.commit()
+        self.conn.close()
+
+def ensure_table_exists():
+
+    with SQLite() as c:
+
+        # Create table
+        c.execute('''CREATE TABLE IF NOT EXISTS status
+             (id INTEGER PRIMARY KEY, last_updated TEXT, count_waiting INTEGER, count_running INTEGER, count_errors INTEGER, progress_json TEXT)''')
+
+        c.execute('''CREATE TABLE IF NOT EXISTS ips
+             (id text PRIMARY KEY, last_updated TEXT, ip TEXT)''')
+
 
 @app.route('/')
 def home():
@@ -19,23 +44,21 @@ def home():
 def update():
     
     try:
-        os.makedirs('./db', exist_ok=True)
-        with TinyDB('./db/db.json', storage=JSONStorage) as db:
-            table = db.table('status')
+        # os.makedirs('./db', exist_ok=True)
+        with SQLite as db:
+            # table = db.table('status')
 
-            stat_objs = table.search(Query().type == 'status')
-            if len(stat_objs) < 1:
-                table.insert({'type': 'status'})
+            # c = conn.cursor()
 
-            new_status = {
-                'updated': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                **request.get_json()
-            }
+            ensure_table_exists()
 
-            table.update(new_status, Query().type == 'status')
+            update_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            status = request.get_json()
+            db.execute(
+                "INSERT OR REPLACE INTO status (id, last_update, count_waiting, count_running, count_errors, progress) VALUES (1,?,?,?,?,?)",
+                 (update_time, status['count_waiting'], status['count_running'], status['count_errors'], json.dumps(status['progress'])))
 
-            stat_objs = table.search(Query().type == 'status')
-            return json.dumps(stat_objs)
+            return json.dumps({'status': 'ok'})
 
     except Exception as e:
         return str(e)
@@ -47,44 +70,52 @@ def update():
 def ip_responder():
     
     try:
-        os.makedirs('./db', exist_ok=True)
+        # os.makedirs('./db', exist_ok=True)
 
         node_id = request.args.get('node')
         ip = request.args.get('ip', None)
 
-        with TinyDB('./db/db.json', storage=JSONStorage) as db:
-            table = db.table('ip')
+        ensure_table_exists()
+
+        with SQLite() as db:
+            
 
             if ip is not None:
-                stat_objs = table.search(Query().id == node_id)
-                if len(stat_objs) < 1:
-                    table.insert({'id': node_id, 'ip': ip})
-                else:
+                update_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                db.execute('INSERT OR REPLACE INTO ips (id, ip, last_updated) VALUES (?,?,?)', (node_id,ip, update_time))
                 
-                    table.update({'ip': ip}, Query().id == node_id)
 
-            stat_objs = table.search(Query().id == node_id)
-            return json.dumps(stat_objs)
+            stat_obj = db.execute('SELECT * FROM ips WHERE id = ?', (node_id,)).fetchone()
+            if stat_obj is not None:
+                return json.dumps(dict(stat_obj))
+            else:
+                return json.dumps({})
 
     except Exception as e:
+        raise e
         return str(e)
 
 
 @app.route('/api/get')
 def get():
     try:
-        os.makedirs('./db', exist_ok=True)
-        with TinyDB('./db/db.json', storage=JSONStorage) as db:
-            table = db.table('status')
+        # os.makedirs('./db', exist_ok=True)
+        with SQLite() as db:
 
-            stat_objs = table.search(Query().type == 'status')
+            ensure_table_exists()
+            # table = db.table('status')
 
-            if len(stat_objs) < 1:
-                table.insert({'type': 'status'})
-
-            stat_obj = table.search(Query().type == 'status')[0]
-
-            return json.dumps(stat_obj)
+            # stat_objs = table.search(Query().type == 'status')
+            stat_objs = db.execute('SELECT * FROM status').fetchall()
+            if len(stat_objs) > 0:
+                status = dict(stat_obj[0])
+                status['progress'] = json.loads(status['progress'])
+                return json.dumps()
+            else:
+                return json.dumps({})
 
     except Exception as e:
         return str(e)
+
+if __name__ == '__main__':
+    app.run(debug=False,host='0.0.0.0', port=5004)
