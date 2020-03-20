@@ -55,7 +55,7 @@ def update():
             update_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             status = request.get_json()
             db.execute(
-                "INSERT OR REPLACE INTO status (id, last_update, count_waiting, count_running, count_errors, progress) VALUES (1,?,?,?,?,?)",
+                "INSERT OR REPLACE INTO status (id, last_updated, count_waiting, count_running, count_errors, progress) VALUES (1,?,?,?,?,?)",
                  (update_time, status['count_waiting'], status['count_running'], status['count_errors'], json.dumps(status['progress'])))
 
             return 'ok'
