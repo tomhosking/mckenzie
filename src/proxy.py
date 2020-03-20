@@ -110,7 +110,7 @@ def get():
             if len(stat_objs) > 0:
                 status = dict(stat_objs[0])
                 status['progress'] = json.loads(status['progress'])
-                return json.dumps()
+                return json.dumps(status)
             else:
                 return json.dumps({})
 
