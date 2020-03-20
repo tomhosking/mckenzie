@@ -45,7 +45,7 @@ def update():
     
     try:
         # os.makedirs('./db', exist_ok=True)
-        with SQLite as db:
+        with SQLite() as db:
             # table = db.table('status')
 
             # c = conn.cursor()
@@ -58,7 +58,7 @@ def update():
                 "INSERT OR REPLACE INTO status (id, last_update, count_waiting, count_running, count_errors, progress) VALUES (1,?,?,?,?,?)",
                  (update_time, status['count_waiting'], status['count_running'], status['count_errors'], json.dumps(status['progress'])))
 
-            return json.dumps({'status': 'ok'})
+            return 'ok'
 
     except Exception as e:
         return str(e)
