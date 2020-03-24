@@ -71,8 +71,10 @@ try:
                 # unicorn.set_pixel(width-1, height-1, 100,0,100)
 
             else:
+                print(r.content)
                 unicorn.set_pixel(width-1, height-1, 100,0,100)
-        except:
+        except Exception as e:
+            print(e)
             unicorn.set_pixel(width-1, height-1, 100,0,100)
 
         unicorn.show()
