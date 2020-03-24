@@ -2,26 +2,14 @@ from flask import Flask, render_template, request
 
 import json, datetime, os
 
-from tinydb import TinyDB, Query
-from tinydb.storages import JSONStorage
-from tinydb.middlewares import CachingMiddleware
-import tinydb
+# from tinydb import TinyDB, Query
+# from tinydb.storages import JSONStorage
+# from tinydb.middlewares import CachingMiddleware
+# import tinydb
 
 app = Flask(__name__)
 
-import sqlite3
-
-
-class SQLite():
-    def __init__(self, file='./db/mckenzie_proxy.sqlite'):
-        self.file=file
-    def __enter__(self):
-        self.conn = sqlite3.connect(self.file)
-        self.conn.row_factory = sqlite3.Row
-        return self.conn.cursor()
-    def __exit__(self, type, value, traceback):
-        self.conn.commit()
-        self.conn.close()
+from sqlite import SQLite
 
 def ensure_table_exists():
 
@@ -99,7 +87,6 @@ def ip_responder():
 @app.route('/api/get')
 def get():
     try:
-        # os.makedirs('./db', exist_ok=True)
         with SQLite() as db:
 
             ensure_table_exists()

@@ -47,9 +47,9 @@ class App extends React.Component {
       }
   }
 
-  deleteJob(jobid)
+  deleteJob(partition, jobid)
   {
-    fetch('/api/delete_job/'+jobid)
+    fetch('/api/delete_job/'+partition+'/'+jobid)
     .then((response) => this.updateStatus(false))
   }
 
@@ -73,7 +73,7 @@ class App extends React.Component {
                         <th scope="col">Partition</th>
                         <th scope="col">Node</th>
                         <th scope="col">Name</th>
-                        <th scope="col">Submitted</th>
+                        {/* <th scope="col">Submitted</th> */}
                         <th scope="col">Status</th>
                         <th scope="col">Score</th>
                         <th scope="col">Progress</th>
@@ -125,14 +125,14 @@ class App extends React.Component {
                                 <tr key={job.id}>
                                     <th scope="row" style={{textAlign: 'center'}}>{job.id}</th>
                                     <td>{job.partition}</td>
-                                    <td>{job.hostname}</td>
-                                    <td>{job.jobname}</td>
-                                    <td>{job.submit_time}</td>
+                                    <td>{job.node}</td>
+                                    <td>{job.name}</td>
+                                    {/* <td>{job.submit_time}</td> */}
                                     <td>{statusIcon}</td>
-                                    <td>{job.metric}</td>
+                                    <td>{job.score}</td>
                                     <td>{job.progress != null ? <ProgressBar progress={job.progress} /> : ''}</td>
                                     <td>{job.msg}</td>
-                                    <td><button onClick={() => (this.deleteJob(job.id))} className="btn p-0 m-0"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button></td>
+                                    <td><button onClick={() => (this.deleteJob(job.partition, job.id))} className="btn p-0 m-0"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button></td>
                                 </tr>
                              )} )
                         }

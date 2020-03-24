@@ -11,11 +11,31 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 import requests
 
+from sqlite import SQLite
 
 # app = Flask(__name__)
 
 app = Flask(__name__, static_folder="ui/build/static", template_folder="ui/build")
 
+
+
+def ensure_table_exists():
+
+    with SQLite() as c:
+
+        # Create table
+        c.execute('''CREATE TABLE IF NOT EXISTS jobs
+            (id INTEGER,
+            partition TEXT,
+            node TEXT,
+            name TEXT,
+            status TEXT,
+            progress REAL,
+            score TEXT,
+            PRIMARY KEY (id, partition)
+            )''')
+
+        
 
 
 def check_auth():
@@ -33,18 +53,22 @@ def home():
 def get_jobs():
     
     # db = TinyDB('./db/db.json')
+
+    with SQLite() as db:
+
+        ensure_table_exists()
     
-    rows = app.table.all()
-    return json.dumps({'job_list': rows})
+        rows = db.execute('SELECT * FROM jobs').fetchall()
+        return json.dumps({'job_list': [dict(row) for row in rows]})
 
 
-@app.route('/api/delete_job/<job_id>', methods=['GET'])
-def delete_job(job_id):
+@app.route('/api/delete_job/<partition>/<job_id>', methods=['GET'])
+def delete_job(partition, job_id):
 
     # db = TinyDB('./db/db.json')
     
-
-    app.table.remove(Query().id == job_id)
+    with SQLite() as db:
+        db.execute('DELETE FROM jobs WHERE id = ? AND partition = ?', (job_id, partition))
     update_proxy()
     return "Removed"
 
@@ -57,80 +81,92 @@ def update_job():
     if not check_auth():
         return "Permission denied! Check your access token"
 
-    if request.form.get('status', '') == "submitted":
-        app.table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
-    else:
-        # TODO: This is a disgrace
-        time = {}
-        node = {}
-        msg = {}
-        jobname = {}
-        status = {}
-        inplay = {}
-        if request.form.get('status', '') == "warmup":
-            node = {'partition': request.form['partition'], 'hostname': request.form['hostname']}
-            time = {'warmup_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        if request.form.get('msg', '') == "running":
-            node = {'partition': request.form['partition'], 'hostname': request.form['hostname']}
-            time = {'running_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        if request.form.get('msg', '') == "complete" or request.form.get('msg', '') or request.form.get('msg', '') == "timeout":
-            time = {'complete_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        if request.form.get('msg', '') != '':
-            msg = {'msg': request.form['msg']}
-        if request.form.get('jobname', '') != '':
-            jobname = {'jobname': request.form['jobname']}
-        if request.form.get('status', '') != '':   
-            status = {'status': request.form['status']}
-        if request.form.get('progress', '') != '' and request.form.get('metric', '') != '':
-            inplay = {'metric': request.form['metric'], 'progress': request.form['progress']}
+    if 'partition' not in request.form:
+        print('Missing partition:')
+        print(request.form)
 
-        app.table.update({**node, **status, **time, **msg, **jobname, **inplay}, Query().id == request.form['jobid'])
+    with SQLite() as db:
+        jobid = request.form['jobid']
+        partition = request.form['partition']
+        if request.form.get('status', '') == "submitted":
+            # app.table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+            db.execute("INSERT INTO jobs (id, partition, status) VALUES (?,?,'submitted')", (jobid, partition))
+        else:
+            query = "UPDATE jobs SET "
+            params = []
+            clauses = []
+
+            if request.form.get('status', '') == "warmup":
+                clauses.append(" node = ?")
+                params.append(request.form['hostname'])
+
+            if request.form.get('jobname', '') != '':
+                clauses.append(" name = ?")
+                params.append(request.form['jobname'])
+
+            if request.form.get('status', '') != '':   
+                clauses.append(" status = ?")
+                params.append(request.form['status'])
+
+            if request.form.get('progress', '') != '' and request.form.get('metric', '') != '':
+                clauses.append(" score = ?, progress = ?")
+                params.append(request.form['metric'])
+                params.append(float(request.form['progress']))
+
+            query += ", ".join(clauses)
+            query += " WHERE id = ? and partition = ?"
+            params.extend([jobid, partition])
+            
+            db.execute(query, params)
     update_proxy()
     return 'Updated job status!\n'
+
+def update_proxy():
+    """ Send summary of status to proxy responder """
+    
+    if 'MCKENZIE_PROXY' not in os.environ:
+        return
+
+    try:
+        headers = {'Content-Type' : 'application/json'}
+
+        with SQLite() as db:
+            jobs = db.execute("SELECT * FROM jobs").fetchall()
+
+            stat_obj = {
+                # 'count_total': len(jobs),
+                'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
+                'count_errors': len([1 for x in jobs if x['status'] == 'error']),
+                'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
+                'running_progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
+            }
+
+            r = requests.post(
+                os.environ['MCKENZIE_PROXY'] + '/api/update',
+                data=json.dumps(stat_obj),
+                headers=headers)
+        
+    except Exception as e:
+        print('Error updating proxy: ', e)
 
 
 if __name__ == '__main__':
 
-    with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
-        app.table = db.table('jobs')
+    # with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
+    #     app.table = db.table('jobs')
 
 
         
 
-        with app.app_context():
-            # app.run(host="0.0.0.0", port=5004, processes=1)
+    #     with app.app_context():
+    #         # app.run(host="0.0.0.0", port=5004, processes=1)
 
-            def update_proxy():
-                """ Send summary of status to proxy responder """
-                
-                if 'MCKENZIE_PROXY' not in os.environ:
-                    return
-
-                try:
-                    headers = {'Content-Type' : 'application/json'}
-
-                    jobs = app.table.all()
-
-                    stat_obj = {
-                        # 'count_total': len(jobs),
-                        'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
-                        'count_errors': len([1 for x in jobs if x['status'] == 'error']),
-                        'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
-                        'running_progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
-                    }
-
-                    r = requests.post(
-                        os.environ['MCKENZIE_PROXY'] + '/api/update',
-                        data=json.dumps(stat_obj),
-                        headers=headers)
-                    
-                except Exception as e:
-                    print('Error updating proxy: ', e)
+            
                 
 
             
-            update_proxy()
+    #         update_proxy()
 
 
-            app.run(debug=False,host='0.0.0.0', port=5002)
+    app.run(debug=True,host='0.0.0.0', port=5002)
     

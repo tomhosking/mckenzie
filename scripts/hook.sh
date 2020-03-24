@@ -8,7 +8,7 @@ newjob=0
 configfile=""
 outputfile=""
 
-while getopts ":a:s:c:o:m:n:i:" opt; do
+while getopts ":a:s:c:o:m:n:i:p:" opt; do
   case $opt in
     a) newjob=1
     ;;
@@ -23,6 +23,8 @@ while getopts ":a:s:c:o:m:n:i:" opt; do
     n) jobname="$OPTARG"
     ;;
     i) SLURM_JOB_ID="$OPTARG"
+    ;;
+    p) SLURM_JOB_PARTITION="$OPTARG"
     ;;
     \?) echo "Invalid option -$OPTARG" >&2
     ;;
