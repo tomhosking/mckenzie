@@ -36,8 +36,8 @@ try:
                 print(status)
 
                 counter = 0
-                if len(status['running_progress']) > 0:
-                    for y, prog in enumerate(status['running_progress'][:3]):
+                if len(status['progress']) > 0:
+                    for y, prog in enumerate(status['progress'][:3]):
                         prog_width = max(int(round(float(prog)/100*(width-1))), 1)
                         prog_col = (255,170,0)
                         # unicorn.set_pixel(0,y,*prog_col)
