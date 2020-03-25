@@ -32,7 +32,20 @@ def ensure_table_exists():
             status TEXT,
             progress REAL,
             score TEXT,
+            has_config INTEGER,
+            has_output INTEGER,
+            archived INTEGER,
             PRIMARY KEY (id, partition)
+            )''')
+
+
+        c.execute('''CREATE TABLE IF NOT EXISTS logs
+            (job_id INTEGER,
+            partition TEXT,
+            msg TEXT,
+            status TEXT,
+            time TEXT,
+            PRIMARY KEY (job_id, partition)
             )''')
 
         
@@ -138,13 +151,16 @@ def update_proxy():
                 'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
                 'count_errors': len([1 for x in jobs if x['status'] == 'error']),
                 'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
-                'running_progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
+                'progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
             }
 
             r = requests.post(
                 os.environ['MCKENZIE_PROXY'] + '/api/update',
                 data=json.dumps(stat_obj),
                 headers=headers)
+
+            if r.status_code != 200 or r.content != 'ok':
+                print(r.status_code, r.content)
         
     except Exception as e:
         print('Error updating proxy: ', e)
@@ -167,6 +183,6 @@ if __name__ == '__main__':
             
     #         update_proxy()
 
-
+    update_proxy()
     app.run(debug=True,host='0.0.0.0', port=5002)
     
