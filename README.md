@@ -1,9 +1,9 @@
-<h1>McKenzie <img src="https://github.com/tomhosking/mckenzie/raw/master/src/static/slurms.png" width="64" style="float:right; vertical-aign:middle;"></h1>
+<h1>McKenzie <img src="https://github.com/tomhosking/mckenzie/raw/master/docs/slurms.png" width="64" style="float:right; vertical-aign:middle;"></h1>
 
 
 A lightweight job tracker for the Slurm scheduler
 
-<img src="https://github.com/tomhosking/mckenzie/raw/master/src/static/screenshot.png">
+<img src="https://github.com/tomhosking/mckenzie/raw/master/docs/screenshot.png">
 
 ## Setup
 
