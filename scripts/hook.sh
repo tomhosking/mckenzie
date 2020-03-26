@@ -8,7 +8,7 @@ newjob=0
 configfile=""
 outputfile=""
 
-while getopts ":a:s:c:o:m:n:i:p:" opt; do
+while getopts ":a:s:c:o:m:n:i:p:r:" opt; do
   case $opt in
     a) newjob=1
     ;;
@@ -17,6 +17,8 @@ while getopts ":a:s:c:o:m:n:i:p:" opt; do
     c) configfile="$OPTARG"
     ;;
     o) outputfile="$OPTARG"
+    ;;
+    r) resultsfile="$OPTARG"
     ;;
     m) metric="$OPTARG"
     ;;
@@ -44,11 +46,16 @@ fi
 
 if [ "$configfile" != "" ]
 then
-    echo "TODO! upload config file $configfile"
+    curl -F jobid=$SLURM_JOB_ID -F partition=$SLURM_JOB_PARTITION -F configfile=@$configfile http://${MCKENZIE_ENDPOINT}/hooks/update_job/
 fi
 
 
 if [ "$outputfile" != "" ]
 then
-    echo "TODO! upload results file $outputfile"
+    curl -F jobid=$SLURM_JOB_ID -F partition=$SLURM_JOB_PARTITION -F outputfile=@$outputfile http://${MCKENZIE_ENDPOINT}/hooks/update_job/
+fi
+
+if [ "$resultsfile" != "" ]
+then
+    curl -F jobid=$SLURM_JOB_ID -F partition=$SLURM_JOB_PARTITION -F resultsfile=@$resultsfile http://${MCKENZIE_ENDPOINT}/hooks/update_job/
 fi

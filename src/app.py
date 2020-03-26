@@ -34,6 +34,7 @@ def ensure_table_exists():
             score TEXT,
             has_config INTEGER,
             has_output INTEGER,
+            has_results INTEGER,
             archived INTEGER,
             PRIMARY KEY (id, partition)
             )''')
@@ -104,7 +105,7 @@ def update_job():
         if request.form.get('status', '') == "submitted":
             # app.table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
             db.execute("INSERT INTO jobs (id, partition, status) VALUES (?,?,'submitted')", (jobid, partition))
-        else:
+        elif request.form.get('status', '') != '':
             query = "UPDATE jobs SET "
             params = []
             clauses = []
@@ -131,6 +132,28 @@ def update_job():
             params.extend([jobid, partition])
             
             db.execute(query, params)
+
+        if 'configfile' in request.files:
+            f = request.files['configfile']
+            os.makedirs(f'./db/job_data/{partition}_{jobid}')
+            f.save(f'./db/job_data/{partition}_{jobid}/config.json')
+            query = "UPDATE jobs SET has_config = 1 WHERE id = ? and partition = ?"
+            db.execute(query, (jobid, partition))
+
+        if 'outputfile' in request.files:
+            f = request.files['outputfile']
+            os.makedirs(f'./db/job_data/{partition}_{jobid}')
+            f.save(f'./db/job_data/{partition}_{jobid}/output.txt')
+            query = "UPDATE jobs SET has_output = 1 WHERE id = ? and partition = ?"
+            db.execute(query, (jobid, partition))
+
+        if 'resultsfile' in request.files:
+            f = request.files['resultsfile']
+            os.makedirs(f'./db/job_data/{partition}_{jobid}')
+            f.save(f'./db/job_data/{partition}_{jobid}/metrics.json')
+            query = "UPDATE jobs SET has_results = 1 WHERE id = ? and partition = ?"
+            db.execute(query, (jobid, partition))
+        
     update_proxy()
     return 'Updated job status!\n'
 
@@ -159,7 +182,7 @@ def update_proxy():
                 data=json.dumps(stat_obj),
                 headers=headers)
 
-            if r.status_code != 200 or r.content != 'ok':
+            if r.status_code != 200 or r.text != 'ok':
                 print(r.status_code, r.content)
         
     except Exception as e:
