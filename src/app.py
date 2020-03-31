@@ -96,8 +96,9 @@ def update_job():
         return "Permission denied! Check your access token"
 
     if 'partition' not in request.form:
-        print('Missing partition:')
-        print(request.form)
+        print('Missing partition!')
+
+    print(request.form)
 
     with SQLite() as db:
         jobid = request.form['jobid']
@@ -105,33 +106,33 @@ def update_job():
         if request.form.get('status', '') == "submitted":
             # app.table.insert({'status': 'submitted', 'id': request.form['jobid'], 'submit_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
             db.execute("INSERT INTO jobs (id, partition, status) VALUES (?,?,'submitted')", (jobid, partition))
-        elif request.form.get('status', '') != '':
+        else:
             query = "UPDATE jobs SET "
             params = []
             clauses = []
 
             if request.form.get('status', '') == "warmup":
-                clauses.append(" node = ?")
+                clauses.append("node = ?")
                 params.append(request.form['hostname'])
 
             if request.form.get('jobname', '') != '':
-                clauses.append(" name = ?")
+                clauses.append("name = ?")
                 params.append(request.form['jobname'])
 
             if request.form.get('status', '') != '':   
-                clauses.append(" status = ?")
+                clauses.append("status = ?")
                 params.append(request.form['status'])
 
             if request.form.get('progress', '') != '' and request.form.get('metric', '') != '':
-                clauses.append(" score = ?, progress = ?")
+                clauses.append("score = ?, progress = ?")
                 params.append(request.form['metric'])
                 params.append(float(request.form['progress']))
 
             query += ", ".join(clauses)
             query += " WHERE id = ? and partition = ?"
             params.extend([jobid, partition])
-            
-            db.execute(query, params)
+            if len(clauses) > 0:
+                db.execute(query, params)
 
         if 'configfile' in request.files:
             f = request.files['configfile']
@@ -207,5 +208,5 @@ if __name__ == '__main__':
     #         update_proxy()
 
     update_proxy()
-    app.run(debug=True,host='0.0.0.0', port=5002)
+    app.run(debug=True,host='0.0.0.0', port=5002, processes=1)
     
