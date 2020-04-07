@@ -55,13 +55,19 @@ def ensure_table_exists():
 def check_auth():
     return True
 
-@app.route('/')
-def home():
+@app.route('/', defaults={'url_path': ''})
+@app.route('/<path:url_path>')
+def home(url_path):
     
     # return render_template('index.htm')
     return render_template('index.html')
 
 
+
+@app.route('/api/get_summary')
+def get_summary():
+    summ_obj = get_summary_obj()
+    return json.dumps(summ_obj)
 
 @app.route('/api/get_jobs')
 def get_jobs():
@@ -158,6 +164,19 @@ def update_job():
     update_proxy()
     return 'Updated job status!\n'
 
+def get_summary_obj():
+    with SQLite() as db:
+        jobs = db.execute("SELECT * FROM jobs").fetchall()
+
+        stat_obj = {
+            # 'count_total': len(jobs),
+            'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
+            'count_errors': len([1 for x in jobs if x['status'] == 'error']),
+            'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
+            'progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
+        }
+    return stat_obj
+
 def update_proxy():
     """ Send summary of status to proxy responder """
     
@@ -167,24 +186,15 @@ def update_proxy():
     try:
         headers = {'Content-Type' : 'application/json'}
 
-        with SQLite() as db:
-            jobs = db.execute("SELECT * FROM jobs").fetchall()
+        stat_obj = get_summary_ob()
 
-            stat_obj = {
-                # 'count_total': len(jobs),
-                'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
-                'count_errors': len([1 for x in jobs if x['status'] == 'error']),
-                'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
-                'progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
-            }
+        r = requests.post(
+            os.environ['MCKENZIE_PROXY'] + '/api/update',
+            data=json.dumps(stat_obj),
+            headers=headers)
 
-            r = requests.post(
-                os.environ['MCKENZIE_PROXY'] + '/api/update',
-                data=json.dumps(stat_obj),
-                headers=headers)
-
-            if r.status_code != 200 or r.text != 'ok':
-                print(r.status_code, r.content)
+        if r.status_code != 200 or r.text != 'ok':
+            print(r.status_code, r.content)
         
     except Exception as e:
         print('Error updating proxy: ', e)
