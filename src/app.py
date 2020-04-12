@@ -186,7 +186,7 @@ def update_proxy():
     try:
         headers = {'Content-Type' : 'application/json'}
 
-        stat_obj = get_summary_ob()
+        stat_obj = get_summary_obj()
 
         r = requests.post(
             os.environ['MCKENZIE_PROXY'] + '/api/update',
