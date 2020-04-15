@@ -16,9 +16,9 @@ import JobHistory from './components/JobHistory';
 import HelpPage from './components/Help';
 
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+//   constructor(props) {
+//     super(props);
+//   }
 
 
   render() {

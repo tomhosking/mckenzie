@@ -173,7 +173,7 @@ def get_summary_obj():
             'count_waiting': len([1 for x in jobs if x['status'] == 'submitted']),
             'count_errors': len([1 for x in jobs if x['status'] == 'error']),
             'count_running': len([1 for x in jobs if x['status'] in ['running','warmup']]),
-            'progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x]
+            'progress': [x['progress'] for x in jobs if x['status'] == 'running' and 'progress' in x.keys()]
         }
     return stat_obj
 

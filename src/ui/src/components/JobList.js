@@ -62,7 +62,7 @@ class JobList extends React.Component {
                         <th scope="col">Status</th>
                         <th scope="col">Score</th>
                         <th scope="col">Progress</th>
-                        <th scope="col">Output</th>
+                        {/* <th scope="col">Output</th> */}
                         <th scope="col">&nbsp;</th>
                         </tr>
                     </thead>
@@ -73,31 +73,31 @@ class JobList extends React.Component {
                             this.state.job_list.map( (job) => {
                                 console.log(job.status);
                                 var statusIcon;
-                                if (job.status == 'running')
+                                if (job.status === 'running')
                                 {
                                     statusIcon = <div class="loader">Running</div>
                                 }
-                                else if (job.status == 'submitted')
+                                else if (job.status === 'submitted')
                                 {
                                     statusIcon = <span class="fa fa-clock-o" aria-hidden="true" style={{color: "#C0D14F"}}></span>
                                 }
-                                else if (job.status == 'warmup')
+                                else if (job.status === 'warmup')
                                 {
                                     statusIcon = <span class="fa fa-flash" aria-hidden="true" style={{color: "#C0D14F"}}></span>
                                 }
-                                else if (job.status == 'error')
+                                else if (job.status === 'error')
                                 {
                                     statusIcon = <span class="fa fa-warning" aria-hidden="true" style={{color: "#CF4062"}}></span>
                                 }
-                                else if (job.status == 'timeout')
+                                else if (job.status === 'timeout')
                                 {
                                     statusIcon = <i className="fa fa-hourglass-end" aria-hidden="true" style={{color: "#EE74EF"}}></i>
                                 }
-                                else if (job.status == 'cancelled')
+                                else if (job.status === 'cancelled')
                                 {
                                     statusIcon = <i className="fa fa-ban" aria-hidden="true" style={{color: "#490E7D"}}></i>
                                 }
-                                else if (job.status == 'complete')
+                                else if (job.status === 'complete')
                                 {
                                     statusIcon = <i className="fa fa-check" aria-hidden="true" style={{color: "#C0D14F"}}></i>
                                 }
@@ -116,7 +116,7 @@ class JobList extends React.Component {
                                     <td>{statusIcon}</td>
                                     <td>{job.score}</td>
                                     <td>{job.progress != null ? <ProgressBar progress={job.progress} /> : ''}</td>
-                                    <td>{job.msg}</td>
+                                    {/* <td>{job.msg}</td> */}
                                     <td><button onClick={() => (this.deleteJob(job.partition, job.id))} className="btn p-0 m-0"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button></td>
                                 </tr>
                             )} )
