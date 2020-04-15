@@ -23,7 +23,7 @@ class App extends React.Component {
 
   render() {
     return <Router>
-            <nav className="navbar navbar-expand-lg navbar-light bg-light py-0">
+            <nav className="navbar sticky-top navbar-expand-lg navbar-light bg-light py-0">
                 <a className="navbar-brand" onClick={window.openPopup}>
                     <img src={logo} style={{width: "32px", height: "32px"}} />
                 </a>
