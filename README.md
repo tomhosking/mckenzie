@@ -31,7 +31,7 @@ source /mnt/ext/phd/mckenzie/scripts/error_trap.sh
 
 Create a new job:
 ```
-${MCKENZIE_HOOK} -a 1 -i $jobId -n $jobName
+${MCKENZIE_HOOK} -a 1 -i $jobId -p $slurmPartition -n $jobName
 ```
 
 Set the status to 'warmup' and send the job config file to McKenzie:
@@ -44,6 +44,11 @@ Set the status to 'running' before starting the job, then 'complete' once it's d
 ${MCKENZIE_HOOK} -s running
 # ...do the job
 ${MCKENZIE_HOOK} -s complete
+```
+
+Upload metrics and output files:
+```
+${MCKENZIE_HOOK} -r $resultsfile -o $outputfile
 ```
 
 To update McKenzie from within a running job, look at the example code in `./lib/mckenzie.py`.
