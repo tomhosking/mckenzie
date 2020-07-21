@@ -35,7 +35,8 @@ def ensure_table_exists():
             has_config INTEGER,
             has_output INTEGER,
             has_results INTEGER,
-            archived INTEGER,
+            archived INTEGER DEFAULT 0,
+            starred INTEGER DEFAULT 0,
             PRIMARY KEY (id, partition)
             )''')
 
@@ -69,8 +70,8 @@ def get_summary():
     summ_obj = get_summary_obj()
     return json.dumps(summ_obj)
 
-@app.route('/api/get_jobs')
-def get_jobs():
+@app.route('/api/get_running')
+def get_running():
     
     # db = TinyDB('./db/db.json')
 
@@ -78,19 +79,87 @@ def get_jobs():
 
         ensure_table_exists()
     
-        rows = db.execute('SELECT * FROM jobs').fetchall()
+        rows = db.execute('SELECT * FROM jobs WHERE archived = 0 or archived IS NULL').fetchall()
+        return json.dumps({'job_list': [dict(row) for row in rows]})
+
+@app.route('/api/get_history', methods=['POST'])
+def get_history():
+    
+    # db = TinyDB('./db/db.json')
+
+    with SQLite() as db:
+
+        ensure_table_exists()
+
+        print(request.json)
+
+        query = 'SELECT * FROM jobs WHERE 1 {:} LIMIT 100'  #ORDER BY id DESC
+        filter_query = ''
+
+        if 'search_text' in request.json:
+            filter_query += "AND name LIKE '%{:}%' ".format(request.json['search_text'])
+        
+        if request.json.get('starred', 0) == 1:
+            filter_query += "AND starred = 1"
+        if request.json.get('running', 0) == 1:
+            filter_query += "AND (status = 'running' or status = 'warmup' or status = 'finalising')"
+        if request.json.get('failed', 0) == 1:
+            filter_query += "AND (status = 'error' OR status = 'timeout' or status = 'cancelled')"
+        if request.json.get('finished', 0) == 1:
+            filter_query += "AND status = 'complete'"
+        
+        query = query.format(filter_query)
+        
+    
+        rows = db.execute(query).fetchall()
         return json.dumps({'job_list': [dict(row) for row in rows]})
 
 
-@app.route('/api/delete_job/<partition>/<job_id>', methods=['GET'])
-def delete_job(partition, job_id):
+@app.route('/api/archive_job/<partition>/<job_id>', methods=['GET'])
+def archive_job(partition, job_id):
 
     # db = TinyDB('./db/db.json')
     
     with SQLite() as db:
-        db.execute('DELETE FROM jobs WHERE id = ? AND partition = ?', (job_id, partition))
+        db.execute('UPDATE jobs SET archived = 1 WHERE id = ? AND partition = ?', (job_id, partition))
     update_proxy()
     return "Removed"
+
+@app.route('/api/star_job/<partition>/<job_id>/<value>', methods=['GET'])
+def star_job(partition, job_id, value):
+
+    # db = TinyDB('./db/db.json')
+
+    print(job_id, value)
+    
+    with SQLite() as db:
+        db.execute('UPDATE jobs SET starred = ? WHERE id = ? AND partition = ?', (value, job_id, partition))
+    update_proxy()
+    return "Star flipped"
+
+@app.route('/api/get_artifact/<type>/<partition>/<job_id>', methods=['GET'])
+def get_artifact(type, partition, job_id):
+    
+
+    if type == 'config':
+        file_path = f'./db/job_data/{partition}_{job_id}/config.json'
+    elif type == 'metrics':
+        file_path = f'./db/job_data/{partition}_{job_id}/metrics.json'
+    elif type == 'output':
+        file_path = f'./db/job_data/{partition}_{job_id}/output.txt'
+    elif type == 'logs':
+        return json.dumps(get_logs(partition, job_id))
+    else:
+        return "Unknown artifact type!"
+
+    print(file_path)
+
+    if not os.path.exists(file_path):
+        return "File not found"
+
+    with open(file_path) as f:
+        content = f.read()
+    return content
 
 @app.route('/hooks/update_job/', methods=['POST'])
 def update_job():
@@ -128,6 +197,9 @@ def update_job():
             if request.form.get('status', '') != '':   
                 clauses.append("status = ?")
                 params.append(request.form['status'])
+                if request.form.get('status', '') == 'complete':
+                    clauses.append("progress = ?")
+                    params.append(100)
 
             if request.form.get('progress', '') != '' and request.form.get('metric', '') != '':
                 clauses.append("score = ?, progress = ?")
@@ -142,31 +214,44 @@ def update_job():
 
         if 'configfile' in request.files:
             f = request.files['configfile']
-            os.makedirs(f'./db/job_data/{partition}_{jobid}')
+            os.makedirs(f'./db/job_data/{partition}_{jobid}', exist_ok=True)
             f.save(f'./db/job_data/{partition}_{jobid}/config.json')
             query = "UPDATE jobs SET has_config = 1 WHERE id = ? and partition = ?"
             db.execute(query, (jobid, partition))
 
         if 'outputfile' in request.files:
             f = request.files['outputfile']
-            os.makedirs(f'./db/job_data/{partition}_{jobid}')
+            os.makedirs(f'./db/job_data/{partition}_{jobid}', exist_ok=True)
             f.save(f'./db/job_data/{partition}_{jobid}/output.txt')
             query = "UPDATE jobs SET has_output = 1 WHERE id = ? and partition = ?"
             db.execute(query, (jobid, partition))
 
         if 'resultsfile' in request.files:
             f = request.files['resultsfile']
-            os.makedirs(f'./db/job_data/{partition}_{jobid}')
+            os.makedirs(f'./db/job_data/{partition}_{jobid}', exist_ok=True)
             f.save(f'./db/job_data/{partition}_{jobid}/metrics.json')
             query = "UPDATE jobs SET has_results = 1 WHERE id = ? and partition = ?"
             db.execute(query, (jobid, partition))
+
+
+        if request.form.get('status', '') != '':
+            msg = '-'
+            status = request.form.get('status', '')
+            db.execute("INSERT INTO logs (id, partition, msg, status, time) VALUES (?,?,?,?,date('now'))", (jobid, partition, msg, status))
         
     update_proxy()
     return 'Updated job status!\n'
 
+def get_logs(partition, job_id):
+    with SQLite() as db:
+        logs = db.execute("SELECT * FROM logs WHERE partition = ? AND job_id = ?", (partition, job_id)).fetchall()
+        # logs = db.execute("SELECT * FROM logs").fetchall()
+
+    return logs
+
 def get_summary_obj():
     with SQLite() as db:
-        jobs = db.execute("SELECT * FROM jobs").fetchall()
+        jobs = db.execute("SELECT * FROM jobs WHERE archived = 0 or archived IS NULL").fetchall()
 
         stat_obj = {
             # 'count_total': len(jobs),
@@ -201,21 +286,6 @@ def update_proxy():
 
 
 if __name__ == '__main__':
-
-    # with TinyDB('./db/db.json', storage=CachingMiddleware(JSONStorage)) as db:
-    #     app.table = db.table('jobs')
-
-
-        
-
-    #     with app.app_context():
-    #         # app.run(host="0.0.0.0", port=5004, processes=1)
-
-            
-                
-
-            
-    #         update_proxy()
 
     update_proxy()
     app.run(debug=True,host='0.0.0.0', port=5002, processes=1)

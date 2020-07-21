@@ -1,6 +1,8 @@
 import React from 'react';
 import ProgressBar from './ProgressBar';
 
+
+
 class JobList extends React.Component {
     constructor(props) {
       super(props);
@@ -12,7 +14,7 @@ class JobList extends React.Component {
 
 
   updateStatus(retrigger = true) {
-        fetch('/api/get_jobs')
+        fetch('/api/get_running')
         .then((response) => response.json())
         .then((data) => this.setState(
             {
@@ -21,8 +23,6 @@ class JobList extends React.Component {
         })
         )
         .catch((err) => console.log(err))
-
-        console.log(this.state)
         
         if(retrigger)
         {
@@ -30,9 +30,15 @@ class JobList extends React.Component {
         }
     }
 
-    deleteJob(partition, jobid)
+    archiveJob(partition, jobid)
     {
-        fetch('/api/delete_job/'+partition+'/'+jobid)
+        fetch('/api/archive_job/'+partition+'/'+jobid)
+        .then((response) => this.updateStatus(false))
+    }
+
+    starJob(partition, jobid, value)
+    {
+        fetch('/api/star_job/'+partition+'/'+jobid + '/' + value)
         .then((response) => this.updateStatus(false))
     }
 
@@ -52,18 +58,17 @@ class JobList extends React.Component {
                 <table class="table table-striped table-sm table-hover small">
                     <thead>
                         <tr>
-                        <th scope="col" style={{textAlign: 'center'}}>
-                            &nbsp;
-                        </th>
-                        <th scope="col">Partition</th>
-                        <th scope="col">Node</th>
-                        <th scope="col">Name</th>
-                        {/* <th scope="col">Submitted</th> */}
-                        <th scope="col">Status</th>
-                        <th scope="col">Score</th>
-                        <th scope="col">Progress</th>
-                        {/* <th scope="col">Output</th> */}
-                        <th scope="col">&nbsp;</th>
+                            <th scope="col">&nbsp;</th>
+                            <th scope="col" style={{textAlign: 'center'}}>
+                                &nbsp;
+                            </th>
+                            <th scope="col">Name</th>
+                            {/* <th scope="col">Submitted</th> */}
+                            <th scope="col">Status</th>
+                            <th scope="col">Score</th>
+                            <th scope="col">Progress</th>
+                            {/* <th scope="col">Output</th> */}
+                            <th scope="col">&nbsp;</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -71,7 +76,7 @@ class JobList extends React.Component {
                             
                             
                             this.state.job_list.map( (job) => {
-                                console.log(job.status);
+                                
                                 var statusIcon;
                                 if (job.status === 'running')
                                 {
@@ -101,6 +106,10 @@ class JobList extends React.Component {
                                 {
                                     statusIcon = <i className="fa fa-check" aria-hidden="true" style={{color: "#C0D14F"}}></i>
                                 }
+                                else if (job.status === 'finalising')
+                                {
+                                    statusIcon = <i className="fa fa-upload" aria-hidden="true" style={{color: "#C0D14F"}}></i>
+                                }
                                 else
                                 {
                                     statusIcon = <span>{job.status}</span>
@@ -108,16 +117,22 @@ class JobList extends React.Component {
                                 return (
                             
                                 <tr key={job.id}>
-                                    <th scope="row" style={{textAlign: 'center'}}>{job.id}</th>
-                                    <td>{job.partition}</td>
-                                    <td>{job.node}</td>
+                                    <td>
+                                        <button onClick={() => (this.starJob(job.partition, job.id, (job.starred ? 0 : 1)))} className="btn p-0 m-0 mr-1">
+                                            <i className="fa fa-star" aria-hidden="true" style={{color: (job.starred ? '#e3b707' : '#aaa')}} />
+                                        </button>
+                                    </td>
+                                    <th scope="row" style={{textAlign: 'center'}}><small>{job.id} @ {job.partition}::{job.node}</small></th>
                                     <td>{job.name}</td>
                                     {/* <td>{job.submit_time}</td> */}
                                     <td>{statusIcon}</td>
                                     <td>{job.score}</td>
                                     <td>{job.progress != null ? <ProgressBar progress={job.progress} /> : ''}</td>
                                     {/* <td>{job.msg}</td> */}
-                                    <td><button onClick={() => (this.deleteJob(job.partition, job.id))} className="btn p-0 m-0"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button></td>
+                                    <td>
+                                        <button onClick={() => (this.archiveJob(job.partition, job.id))} className="btn p-0 m-0 mr-1"><i className="fa fa-times-circle" aria-hidden="true" style={{color: "red"}}></i></button>
+                                        
+                                    </td>
                                 </tr>
                             )} )
                         }
