@@ -46,8 +46,7 @@ def ensure_table_exists():
             partition TEXT,
             msg TEXT,
             status TEXT,
-            time TEXT,
-            PRIMARY KEY (job_id, partition)
+            time TEXT
             )''')
 
         
@@ -148,7 +147,7 @@ def get_artifact(type, partition, job_id):
     elif type == 'output':
         file_path = f'./db/job_data/{partition}_{job_id}/output.txt'
     elif type == 'logs':
-        return json.dumps(get_logs(partition, job_id))
+        return json.dumps([dict(row) for row in get_logs(partition, job_id)], indent=2)
     else:
         return "Unknown artifact type!"
 
@@ -237,7 +236,7 @@ def update_job():
         if request.form.get('status', '') != '':
             msg = '-'
             status = request.form.get('status', '')
-            db.execute("INSERT INTO logs (id, partition, msg, status, time) VALUES (?,?,?,?,date('now'))", (jobid, partition, msg, status))
+            db.execute("INSERT INTO logs (job_id, partition, msg, status, time) VALUES (?, ?, ?, ?, strftime('%s','now'))", (jobid, partition, msg, status))
         
     update_proxy()
     return 'Updated job status!\n'
@@ -246,7 +245,8 @@ def get_logs(partition, job_id):
     with SQLite() as db:
         logs = db.execute("SELECT * FROM logs WHERE partition = ? AND job_id = ?", (partition, job_id)).fetchall()
         # logs = db.execute("SELECT * FROM logs").fetchall()
-
+    print(len(logs))
+    print([dict(row) for row in logs])
     return logs
 
 def get_summary_obj():
