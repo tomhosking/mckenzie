@@ -102,7 +102,8 @@ class JobHistory extends React.Component {
                                 var statusIcon;
                                 if (job.status === 'running')
                                 {
-                                    statusIcon = <div className="loader">Running</div>
+                                    // statusIcon = <div className="loader">Running</div>
+                                    statusIcon = <span class="fa fa-play" aria-hidden="true" style={{color: "#C0D14F"}}></span>
                                 }
                                 else if (job.status === 'submitted')
                                 {

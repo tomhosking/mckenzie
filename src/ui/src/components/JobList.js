@@ -1,7 +1,7 @@
 import React from 'react';
 import ProgressBar from './ProgressBar';
 
-
+import { FaPlayCircle } from 'react-icons/fa';
 
 class JobList extends React.Component {
     constructor(props) {
@@ -80,7 +80,8 @@ class JobList extends React.Component {
                                 var statusIcon;
                                 if (job.status === 'running')
                                 {
-                                    statusIcon = <div class="loader">Running</div>
+                                    // statusIcon = <div class="loader">Running</div>
+                                    statusIcon = <FaPlayCircle style={{color: "#C0D14F"}} />
                                 }
                                 else if (job.status === 'submitted')
                                 {
