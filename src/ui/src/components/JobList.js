@@ -107,6 +107,10 @@ class JobList extends React.Component {
                                 {
                                     statusIcon = <i className="fa fa-check" aria-hidden="true" style={{color: "#C0D14F"}}></i>
                                 }
+                                else if (job.status === 'validating')
+                                {
+                                    statusIcon = <i className="fa fa-tachometer" aria-hidden="true" style={{color: "#C0D14F"}}></i>
+                                }
                                 else if (job.status === 'finalising')
                                 {
                                     statusIcon = <i className="fa fa-upload" aria-hidden="true" style={{color: "#C0D14F"}}></i>
